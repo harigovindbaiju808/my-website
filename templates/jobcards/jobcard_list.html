@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Cards - Heavy Vehicle Workshop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-id-card-clip text-primary me-2"></i> Workshop Job Cards</h2>
+            <p class="text-muted mb-0">Module 4: Repair progress tracking, technical checklists & job card lifecycles.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light table-heavy">
+                        <tr>
+                            <th>Job Card #</th>
+                            <th>Vehicle Registration</th>
+                            <th>Make & Model</th>
+                            <th>Lead Mechanic</th>
+                            <th>Status</th>
+                            <th>Start Date</th>
+                            <th>Estimated Completion</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in job_cards %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ card.job_card_number }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border fw-bold">
+                                        {{ card.service_request.vehicle.registration_number }}
+                                    </span>
+                                </td>
+                                <td>{{ card.service_request.vehicle.make }} {{ card.service_request.vehicle.model_name }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ card.assigned_mechanic.get_full_name|default:card.assigned_mechanic.username }}</div>
+                                    <small class="text-muted">{{ card.assigned_mechanic.specialization|default:"Mechanic" }}</small>
+                                </td>
+                                <td>
+                                    {% if card.status == 'CLOSED' %}
+                                        <span class="badge bg-secondary">{{ card.get_status_display }}</span>
+                                    {% elif card.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ card.get_status_display }}</span>
+                                    {% elif card.status == 'TESTING' %}
+                                        <span class="badge bg-warning text-dark">{{ card.get_status_display }}</span>
+                                    {% elif card.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-primary">{{ card.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">{{ card.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ card.start_time|date:"M d, Y" }}</td>
+                                <td>{{ card.estimated_completion|date:"M d, Y H:i"|default:"TBD" }}</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'jobcard_detail' card.pk %}" class="btn btn-sm btn-primary">
+                                            <i class="fa-solid fa-eye me-1"></i> View Card
+                                        </a>
+                                        {% if user.is_admin_role or user == card.assigned_mechanic %}
+                                            <a href="{% url 'jobcard_update' card.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-clipboard-check fa-3x mb-3 text-secondary d-block"></i>
+                                    No job cards generated yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

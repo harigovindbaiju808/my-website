@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Request {{ req.request_number }} - Heavy Vehicle Service{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-clipboard-check text-primary me-2"></i> Service Request: {{ req.request_number }}</h2>
+            <p class="text-muted mb-0">Vehicle: {{ req.vehicle.registration_number }} ({{ req.vehicle.make }} {{ req.vehicle.model_name }})</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'service_request_list' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Requests
+            </a>
+            {% if user.is_admin_role and req.status == 'PENDING' %}
+                <a href="{% url 'service_request_assign' req.pk %}" class="btn btn-primary fw-bold">
+                    <i class="fa-solid fa-user-plus me-1"></i> Assign Mechanic & Open Job Card
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-file-lines text-primary me-2"></i> Request Overview & Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Service Category</span>
+                            <strong class="text-dark">{{ req.get_service_type_display }}</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Priority Level</span>
+                            {% if req.priority == 'CRITICAL' %}
+                                <span class="badge bg-danger">{{ req.get_priority_display }}</span>
+                            {% elif req.priority == 'HIGH' %}
+                                <span class="badge bg-warning text-dark">{{ req.get_priority_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark">{{ req.get_priority_display }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Request Status</span>
+                            <span class="badge bg-primary">{{ req.get_status_display }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Preferred Date</span>
+                            <strong>{{ req.preferred_date|date:"F d, Y" }}</strong>
+                        </div>
+                    </div>
+
+                    {% if req.breakdown_location %}
+                        <div class="alert alert-danger d-flex align-items-center mb-3">
+                            <i class="fa-solid fa-location-dot fa-2x me-3"></i>
+                            <div>
+                                <strong class="d-block">Highway Breakdown / Site Location:</strong>
+                                <span>{{ req.breakdown_location }}</span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <h6 class="fw-bold text-dark mt-4">Customer Reported Issues & Symptoms:</h6>
+                    <div class="p-3 bg-light rounded border text-secondary">
+                        {{ req.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <!-- Linked Job Card / Mechanic Info -->
+            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                <div class="card-header bg-primary text-white py-3" style="background-color: #1e3a8a !important;">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-id-card-clip text-warning me-2"></i> Job Card & Workshop Assignment
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if req.job_card %}
+                        <div class="mb-3">
+                            <span class="text-muted small d-block">Active Job Card Number:</span>
+                            <h4 class="fw-bold text-primary mb-1">{{ req.job_card.job_card_number }}</h4>
+                            <span class="badge bg-dark">{{ req.job_card.get_status_display }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="text-muted small d-block">Assigned Lead Mechanic:</span>
+                            <strong class="text-dark"><i class="fa-solid fa-user-gear text-secondary me-1"></i> {{ req.job_card.assigned_mechanic.get_full_name }}</strong>
+                            <div class="small text-muted">{{ req.job_card.assigned_mechanic.specialization|default:"Certified Heavy Vehicle Specialist" }}</div>
+                        </div>
+                        <a href="{% url 'jobcard_detail' req.job_card.pk %}" class="btn btn-warning fw-bold w-100">
+                            <i class="fa-solid fa-screwdriver-wrench me-1"></i> Open Job Card Console
+                        </a>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fa-solid fa-clock-rotate-left fa-2x mb-2 text-warning d-block"></i>
+                            <p class="mb-3">Waiting for workshop administrator to allocate a mechanic and generate job card.</p>
+                            {% if user.is_admin_role %}
+                                <a href="{% url 'service_request_assign' req.pk %}" class="btn btn-primary fw-bold">
+                                    <i class="fa-solid fa-user-plus me-1"></i> Allocate Mechanic Now
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer / Fleet Profile -->
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-user text-primary me-2"></i> Client Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="fw-bold text-dark">{{ req.customer.get_full_name|default:req.customer.username }}</div>
+                    <div class="text-muted small mb-2">{{ req.customer.company_name|default:"Individual Vehicle Owner" }}</div>
+                    <div class="small mb-1"><i class="fa-solid fa-phone me-2 text-primary"></i> {{ req.customer.phone_number|default:"Not Provided" }}</div>
+                    <div class="small"><i class="fa-solid fa-envelope me-2 text-primary"></i> {{ req.customer.email }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

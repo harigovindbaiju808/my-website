@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Invoices & Billing - Heavy Vehicle Service{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i> Invoices & Billing Management</h2>
+            <p class="text-muted mb-0">Module 7: Automated billing calculation, parts + labor charges, 18% GST & payment processing.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light table-heavy">
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Vehicle Registration</th>
+                            <th>Client / Fleet</th>
+                            <th>Labor (₹)</th>
+                            <th>Parts (₹)</th>
+                            <th>GST Tax (₹)</th>
+                            <th>Total Payable (₹)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for inv in invoices %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ inv.invoice_number }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ inv.job_card.service_request.vehicle.registration_number }}</div>
+                                    <small class="text-muted">{{ inv.job_card.job_card_number }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ inv.customer.get_full_name|default:inv.customer.username }}</div>
+                                    <small class="text-muted">{{ inv.customer.company_name|default:"Individual" }}</small>
+                                </td>
+                                <td>₹{{ inv.labor_charges|intcomma }}</td>
+                                <td>₹{{ inv.parts_charges|intcomma }}</td>
+                                <td>₹{{ inv.tax_amount|intcomma }}</td>
+                                <td class="fw-bold fs-6 text-dark">₹{{ inv.total_amount|intcomma }}</td>
+                                <td>
+                                    {% if inv.status == 'PAID' %}
+                                        <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i> Paid in Full</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-clock me-1"></i> Awaiting Payment</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'invoice_detail' inv.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fa-solid fa-receipt me-1"></i> View Invoice
+                                        </a>
+                                        {% if user.is_customer_role and inv.status == 'UNPAID' %}
+                                            <a href="{% url 'process_payment' inv.pk %}" class="btn btn-sm btn-success fw-bold">
+                                                <i class="fa-solid fa-credit-card me-1"></i> Pay Now
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-file-invoice fa-3x mb-3 text-secondary d-block"></i>
+                                    No invoices generated yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

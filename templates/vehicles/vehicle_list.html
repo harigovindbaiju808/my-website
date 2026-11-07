@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Heavy Vehicles - Fleet Registry{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-truck text-primary me-2"></i> Heavy Vehicle Fleet Registry</h2>
+            <p class="text-muted mb-0">Module 2: Complete commercial vehicle profiles, chassis records, and maintenance logs.</p>
+        </div>
+        <div>
+            <a href="{% url 'vehicle_create' %}" class="btn btn-warning fw-bold">
+                <i class="fa-solid fa-plus me-1"></i> Register Heavy Vehicle
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light table-heavy">
+                        <tr>
+                            <th>Reg Number</th>
+                            <th>Vehicle Type</th>
+                            <th>Make & Model</th>
+                            <th>Owner / Fleet Company</th>
+                            <th>Mfg Year</th>
+                            <th>Odometer</th>
+                            <th>Fuel Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vehicles %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ v.registration_number }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="fa-solid fa-truck-moving me-1 text-secondary"></i> {{ v.get_vehicle_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ v.make }} {{ v.model_name }}</div>
+                                    <small class="text-muted">Chassis: {{ v.chassis_number|default:"N/A" }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ v.customer.get_full_name|default:v.customer.username }}</div>
+                                    <small class="text-muted">{{ v.customer.company_name|default:"Individual Owner" }}</small>
+                                </td>
+                                <td>{{ v.manufacture_year }}</td>
+                                <td>{{ v.odometer_reading|intcomma }} km</td>
+                                <td><span class="badge bg-secondary">{{ v.get_fuel_type_display }}</span></td>
+                                <td>
+                                    <a href="{% url 'vehicle_detail' v.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-eye me-1"></i> Profile & History
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-truck-monster fa-3x mb-3 text-secondary d-block"></i>
+                                    No heavy commercial vehicles registered yet.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

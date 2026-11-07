@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Reviews - Heavy Vehicle Service{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-comments text-primary me-2"></i> Client Feedback & Reviews</h2>
+            <p class="text-muted mb-0">Module 8: Performance feedback on repairs, technician conduct & service timeliness.</p>
+        </div>
+        <div class="text-end">
+            <span class="text-muted small d-block">Overall Satisfaction Rating:</span>
+            <h4 class="fw-bold text-warning mb-0">
+                {{ avg_rating }} <i class="fa-solid fa-star"></i> / 5.0
+            </h4>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for fb in feedbacks %}
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 rounded-3 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="fw-bold text-dark mb-0">{{ fb.customer.get_full_name|default:fb.customer.username }}</h5>
+                            <div class="text-warning fs-5">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="text-muted small mb-2">
+                            Company: <strong>{{ fb.customer.company_name|default:"Individual Fleet" }}</strong>
+                            | Date: {{ fb.submitted_at|date:"M d, Y" }}
+                        </div>
+
+                        <div class="p-2 bg-light rounded border mb-3 small">
+                            <div class="row">
+                                <div class="col-6"><strong>Vehicle:</strong> {{ fb.job_card.service_request.vehicle.registration_number }}</div>
+                                <div class="col-6"><strong>Lead Mechanic:</strong> {{ fb.mechanic.get_full_name }}</div>
+                            </div>
+                        </div>
+
+                        <p class="text-secondary mb-0 fst-italic">"{{ fb.comments }}"</p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="fa-solid fa-star fa-3x mb-3 text-secondary d-block"></i>
+                No customer feedback records logged yet.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

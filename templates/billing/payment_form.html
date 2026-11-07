@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Checkout - Pay Invoice {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-success text-white py-3 rounded-top-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-shield-halved me-2"></i> Secure Payment Gateway Simulator
+                    </h5>
+                    <small class="text-white-50">Module 7: Online Payment Settlement</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Invoice Summary -->
+                    <div class="p-3 bg-light rounded border mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Invoice Ref: <strong>{{ invoice.invoice_number }}</strong></span>
+                            <span class="badge bg-warning text-dark">Payment Due</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ invoice.job_card.service_request.vehicle.registration_number }}</h6>
+                                <small class="text-muted">{{ invoice.job_card.service_request.vehicle.make }} {{ invoice.job_card.service_request.vehicle.model_name }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted small d-block">Amount Due:</span>
+                                <h3 class="fw-bold text-success mb-0">₹{{ invoice.total_amount|intcomma }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Payment Gateway Channel <span class="text-danger">*</span></label>
+                            {{ form.payment_method }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Commercial Card Number / UPI VPA <span class="text-danger">*</span></label>
+                            {{ form.card_or_upi_info }}
+                            <div class="form-text small">e.g. <code>4532 8912 3456 7890</code> or <code>fleet_finance@icici</code></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Cardholder / Account Name <span class="text-danger">*</span></label>
+                            {{ form.payer_name }}
+                        </div>
+
+                        <div class="p-3 bg-light rounded border small text-muted mb-4">
+                            <i class="fa-solid fa-lock text-success me-1"></i> 256-bit SSL simulated encryption. Funds will be verified and the invoice marked <strong>PAID</strong> immediately upon checkout.
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold flex-fill shadow-sm">
+                                <i class="fa-solid fa-check-circle me-2"></i> Pay ₹{{ invoice.total_amount|intcomma }} Now
+                            </button>
+                            <a href="{% url 'invoice_detail' invoice.pk %}" class="btn btn-outline-secondary btn-lg px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Job Card {{ card.job_card_number }} - Workshop Console{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="fw-bold mb-0 text-primary">{{ card.job_card_number }}</h2>
+                <span class="badge bg-dark fs-6">{{ card.get_status_display }}</span>
+            </div>
+            <p class="text-muted mb-0">
+                Heavy Vehicle: <strong>{{ card.service_request.vehicle.registration_number }}</strong> ({{ card.service_request.vehicle.make }} {{ card.service_request.vehicle.model_name }})
+                | Customer: <strong>{{ card.service_request.customer.get_full_name|default:card.service_request.customer.username }}</strong>
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+            <a href="{% url 'jobcard_list' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </a>
+            {% if user.is_admin_role or user == card.assigned_mechanic %}
+                <a href="{% url 'jobcard_update' card.pk %}" class="btn btn-outline-primary fw-semibold">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Update Status & Readings
+                </a>
+            {% endif %}
+
+            {% if user.is_admin_role and card.status in 'COMPLETED,CLOSED' %}
+                {% if not card.invoice %}
+                    <a href="{% url 'invoice_create' card.pk %}" class="btn btn-success fw-bold">
+                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Generate Invoice
+                    </a>
+                {% else %}
+                    <a href="{% url 'invoice_detail' card.invoice.pk %}" class="btn btn-outline-success fw-bold">
+                        <i class="fa-solid fa-receipt me-1"></i> View Invoice ({{ card.invoice.invoice_number }})
+                    </a>
+                {% endif %}
+            {% endif %}
+
+            {% if user.is_customer_role and card.status in 'COMPLETED,CLOSED' and not card.feedback %}
+                <a href="{% url 'feedback_create' card.pk %}" class="btn btn-warning fw-bold">
+                    <i class="fa-solid fa-star me-1"></i> Leave Service Feedback
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Diagnostic & Work Summary Box -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100 rounded-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-stethoscope text-primary me-2"></i> Diagnosis & Technical Observations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary mb-3">{{ card.diagnosis_findings|default:"Preliminary diagnostics underway by assigned technician."|linebreaks }}</p>
+                    <div class="p-3 bg-light rounded border small">
+                        <div class="row">
+                            <div class="col-6"><strong>Meter-In (Odometer):</strong> {{ card.meter_reading_in|intcomma }} km</div>
+                            <div class="col-6"><strong>Meter-Out:</strong> {{ card.meter_reading_out|intcomma|default:"Pending final test" }} km</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100 rounded-3">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-check-double text-success me-2"></i> Work Execution Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary mb-3">{{ card.work_performed_summary|default:"Work in progress. Tasks will be updated upon completion."|linebreaks }}</p>
+                    <div class="p-3 bg-light rounded border small">
+                        <div class="row">
+                            <div class="col-6"><strong>Assigned Lead:</strong> {{ card.assigned_mechanic.get_full_name }}</div>
+                            <div class="col-6"><strong>Service Category:</strong> {{ card.service_request.get_service_type_display }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODULE 4: Task Checklist -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-list-check text-primary me-2"></i> Inspection & Service Checklist Tasks
+            </h5>
+            <span class="badge bg-secondary">{{ tasks.count }} items</span>
+        </div>
+        <div class="card-body p-3">
+            <div class="list-group mb-3">
+                {% for task in tasks %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center {% if task.is_completed %}bg-light text-muted{% endif %}">
+                        <div class="d-flex align-items-center">
+                            {% if user.is_admin_role or user == card.assigned_mechanic %}
+                                <a href="{% url 'jobcard_toggle_task' card.pk task.pk %}" class="me-3 fs-5 text-decoration-none">
+                                    {% if task.is_completed %}
+                                        <i class="fa-solid fa-square-check text-success"></i>
+                                    {% else %}
+                                        <i class="fa-regular fa-square text-secondary"></i>
+                                    {% endif %}
+                                </a>
+                            {% else %}
+                                <span class="me-3 fs-5">
+                                    {% if task.is_completed %}<i class="fa-solid fa-check-circle text-success"></i>{% else %}<i class="fa-regular fa-circle text-secondary"></i>{% endif %}
+                                </span>
+                            {% endif %}
+                            <span class="{% if task.is_completed %}text-decoration-line-through text-muted{% else %}fw-semibold text-dark{% endif %}">
+                                {{ task.task_name }}
+                            </span>
+                        </div>
+                        {% if task.is_completed and task.completed_at %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                Cleared: {{ task.completed_at|date:"M d, H:i" }}
+                            </span>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <div class="text-center py-3 text-muted">No checklist tasks added yet.</div>
+                {% endfor %}
+            </div>
+
+            <!-- Add Task Form for Mechanic/Admin -->
+            {% if user.is_admin_role or user == card.assigned_mechanic %}
+                <form method="POST" action="{% url 'jobcard_add_task' card.pk %}" class="d-flex gap-2">
+                    {% csrf_token %}
+                    {{ task_form.task_name }}
+                    <button type="submit" class="btn btn-primary fw-semibold px-4 text-nowrap">
+                        <i class="fa-solid fa-plus me-1"></i> Add Checklist Item
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MODULE 5: Mechanic Progress Work Logs -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i> Mechanic Activity & Labor Hours Tracking (Total: {{ total_hours }} hrs)
+            </h5>
+            <span class="badge bg-dark">{{ work_logs.count }} Logs</span>
+        </div>
+        <div class="card-body p-3">
+            <div class="table-responsive mb-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time Logged</th>
+                            <th>Mechanic</th>
+                            <th>Activity Conducted</th>
+                            <th>Work Details</th>
+                            <th>Hours Dedication</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in work_logs %}
+                            <tr>
+                                <td>{{ log.logged_at|date:"M d, H:i" }}</td>
+                                <td class="fw-semibold">{{ log.mechanic.get_full_name|default:log.mechanic.username }}</td>
+                                <td class="fw-bold text-dark">{{ log.activity_title }}</td>
+                                <td class="small text-muted">{{ log.work_details }}</td>
+                                <td><span class="badge bg-primary fs-6">{{ log.hours_spent }} hrs</span></td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3 text-muted">No work hours logged yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Add Work Log Form -->
+            {% if user.is_admin_role or user == card.assigned_mechanic %}
+                <div class="border rounded p-3 bg-light">
+                    <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-stopwatch me-1 text-primary"></i> Log Mechanic Labor Hours & Repair Details:</h6>
+                    <form method="POST" action="{% url 'jobcard_add_worklog' card.pk %}">
+                        {% csrf_token %}
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-8">
+                                {{ log_form.activity_title }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ log_form.hours_spent }}
+                            </div>
+                            <div class="col-12">
+                                {{ log_form.work_details }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning fw-bold btn-sm px-3">
+                            <i class="fa-solid fa-save me-1"></i> Save Work Log Entry
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MODULE 6: Spare Parts Issued & Inventory Deductions -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-boxes-stacked text-success me-2"></i> Heavy Spare Parts Consumed & Billed (Total: ₹{{ total_parts_cost|intcomma }})
+            </h5>
+            <span class="badge bg-success">{{ parts_used.count }} Parts Issued</span>
+        </div>
+        <div class="card-body p-3">
+            <div class="table-responsive mb-3">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Part SKU</th>
+                            <th>Component Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Unit Rate (₹)</th>
+                            <th>Subtotal (₹)</th>
+                            <th>Issued At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usage in parts_used %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ usage.part.part_number }}</td>
+                                <td class="fw-semibold">{{ usage.part.name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ usage.part.get_category_display }}</span></td>
+                                <td><span class="badge bg-secondary">{{ usage.quantity }} {{ usage.part.unit_of_measure }}</span></td>
+                                <td>₹{{ usage.unit_price|intcomma }}</td>
+                                <td class="fw-bold text-success">₹{{ usage.subtotal|intcomma }}</td>
+                                <td class="small text-muted">{{ usage.issued_at|date:"M d, H:i" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-3 text-muted">No spare parts issued yet for this job card.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Issue Part Form -->
+            {% if user.is_admin_role or user == card.assigned_mechanic %}
+                <div class="border rounded p-3 bg-light">
+                    <h6 class="fw-bold mb-2 text-dark"><i class="fa-solid fa-box-open me-1 text-success"></i> Issue Spare Part from Warehouse Inventory:</h6>
+                    <form method="POST" action="{% url 'jobcard_issue_part' card.pk %}" class="row g-2 align-items-center">
+                        {% csrf_token %}
+                        <div class="col-md-7">
+                            {{ part_usage_form.part }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ part_usage_form.quantity }}
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-success fw-bold w-100">
+                                <i class="fa-solid fa-plus me-1"></i> Issue Part
+                            </button>
+                        </div>
+                    </form>
+                    <small class="text-muted mt-1 d-block"><i class="fa-solid fa-info-circle me-1"></i> Stock will be automatically decremented in the inventory database upon issuing.</small>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

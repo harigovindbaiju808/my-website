@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Heavy Vehicle Repair and Service Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white">
+    <div class="container">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7">
+                <div class="badge bg-warning text-dark px-3 py-2 mb-3 fw-bold rounded-pill text-uppercase">
+                    <i class="fa-solid fa-wrench me-1"></i> Fleet Maintenance & Workshop ERP
+                </div>
+                <h1 class="display-4 fw-extrabold mb-3 lh-sm">
+                    Heavy Vehicle Repair & Service Management System
+                </h1>
+                <p class="lead text-light mb-4 opacity-90">
+                    A comprehensive web-based platform streamlining workshop maintenance, mobile emergency breakdown dispatch, job card lifecycle, spare parts inventory, computerized invoicing, and fleet telemetry.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard_redirect' %}" class="btn btn-warning btn-lg fw-bold px-4">
+                            <i class="fa-solid fa-gauge-high me-2"></i> Open Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-warning btn-lg fw-bold px-4">
+                            <i class="fa-solid fa-right-to-bracket me-2"></i> Login to System
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg px-4">
+                            <i class="fa-solid fa-user-plus me-2"></i> Register Account
+                        </a>
+                    {% endif %}
+                    <a href="#modules" class="btn btn-outline-info btn-lg px-3">
+                        <i class="fa-solid fa-layer-group me-2"></i> Explore 8 Modules
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center">
+                <div class="p-4 bg-dark bg-opacity-50 border border-secondary rounded-4 shadow-lg text-start">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fa-solid fa-truck-moving fs-1 text-warning me-3"></i>
+                        <div>
+                            <h5 class="mb-0 text-white">Workshop Live Status</h5>
+                            <small class="text-white-50">Real-time Service Operations</small>
+                        </div>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="row text-center g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-dark rounded-3 border border-dark">
+                                <div class="fs-3 fw-bold text-info">{{ total_vehicles }}</div>
+                                <div class="small text-white-50">Heavy Vehicles</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-dark rounded-3 border border-dark">
+                                <div class="fs-3 fw-bold text-success">{{ completed_jobs }}</div>
+                                <div class="small text-white-50">Jobs Cleared</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-dark rounded-3 border border-dark">
+                                <div class="fs-3 fw-bold text-warning">{{ active_mechanics }}</div>
+                                <div class="small text-white-50">Certified Mechanics</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-dark rounded-3 border border-dark">
+                                <div class="fs-3 fw-bold text-warning">{{ avg_rating }} <i class="fa-solid fa-star fs-6"></i></div>
+                                <div class="small text-white-50">Client Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- System Modules Section (Exact 8 modules from requirement specification) -->
+<section id="modules" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="text-primary fw-bold text-uppercase tracking-wide">Core Architecture</span>
+            <h2 class="fw-bold mt-1">8 Core Modules Implemented</h2>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                Designed specifically according to the Heavy Vehicle Repair and Service Management System specification.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Module 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">1. User Auth & RBAC</h5>
+                    <p class="text-muted small">
+                        Multi-role access control for Workshop Admins, Certified Mechanics, and Fleet Owners / Customers with secured sessions.
+                    </p>
+                    <span class="badge bg-light text-primary border mt-auto text-start">Module 1</span>
+                </div>
+            </div>
+
+            <!-- Module 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success mb-3">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">2. Vehicle & Customer</h5>
+                    <p class="text-muted small">
+                        Comprehensive registries for multi-axle trucks, tippers, trailers, buses, chassis numbers, odometer history & owner logs.
+                    </p>
+                    <span class="badge bg-light text-success border mt-auto text-start">Module 2</span>
+                </div>
+            </div>
+
+            <!-- Module 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info mb-3">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">3. Service Requests</h5>
+                    <p class="text-muted small">
+                        Submit routine maintenance or highway breakdown requests; admin triage and intelligent mechanic job allocation.
+                    </p>
+                    <span class="badge bg-light text-info border mt-auto text-start">Module 3</span>
+                </div>
+            </div>
+
+            <!-- Module 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning mb-3">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">4. Job Card System</h5>
+                    <p class="text-muted small">
+                        Unique job cards, checklists, diagnostic findings, meter-in/out records, and multi-stage lifecycle state machine.
+                    </p>
+                    <span class="badge bg-light text-warning border mt-auto text-start">Module 4</span>
+                </div>
+            </div>
+
+            <!-- Module 5 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-danger bg-opacity-10 text-danger mb-3">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">5. Mechanic Tracking</h5>
+                    <p class="text-muted small">
+                        Mechanics update active tasks, log labor hours spent, record technical repairs, and report completion status.
+                    </p>
+                    <span class="badge bg-light text-danger border mt-auto text-start">Module 5</span>
+                </div>
+            </div>
+
+            <!-- Module 6 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-secondary bg-opacity-10 text-secondary mb-3">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">6. Inventory & Parts</h5>
+                    <p class="text-muted small">
+                        Track heavy spare parts, automatic stock deductions upon issuing to job cards, and low-inventory reorder alerts.
+                    </p>
+                    <span class="badge bg-light text-secondary border mt-auto text-start">Module 6</span>
+                </div>
+            </div>
+
+            <!-- Module 7 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">7. Billing & Payment</h5>
+                    <p class="text-muted small">
+                        Automated invoice calculation (labor + parts + 18% GST), PDF-ready invoice layouts, and simulated UPI/Card payment gateway.
+                    </p>
+                    <span class="badge bg-light text-primary border mt-auto text-start">Module 7</span>
+                </div>
+            </div>
+
+            <!-- Module 8 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-stat p-3">
+                    <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success mb-3">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">8. Feedback & Reports</h5>
+                    <p class="text-muted small">
+                        5-star customer ratings, timeliness reviews, financial analytics, mechanic workload reports, and charts.
+                    </p>
+                    <span class="badge bg-light text-success border mt-auto text-start">Module 8</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Demo Quick Accounts Callout for Evaluation -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="card bg-light border-0 p-4 rounded-4 shadow-sm">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h4 class="fw-bold mb-1"><i class="fa-solid fa-key text-warning me-2"></i> Academic Evaluation Credentials</h4>
+                    <p class="text-muted mb-3">Use these pre-configured accounts to instantly evaluate all role-based features without manual registration:</p>
+                    <div class="row g-2 text-start small">
+                        <div class="col-md-4">
+                            <div class="p-2 bg-white rounded border">
+                                <strong class="text-danger">Admin:</strong><br>
+                                <code>admin</code> / <code>admin123</code>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 bg-white rounded border">
+                                <strong class="text-warning text-dark">Mechanic:</strong><br>
+                                <code>mechanic_ravi</code> / <code>pass123</code>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 bg-white rounded border">
+                                <strong class="text-success">Fleet Customer:</strong><br>
+                                <code>fleet_kiran</code> / <code>pass123</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center mt-3 mt-lg-0">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg fw-bold w-100 shadow-sm">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Go to Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

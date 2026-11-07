@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Heavy Vehicle Repair & Service System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-4 rounded-top-4" style="background-color: #1e3a8a !important;">
+                    <div class="mb-2">
+                        <i class="fa-solid fa-truck-monster fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="fw-bold mb-0">Sign In to Workshop Portal</h4>
+                    <small class="text-white-50">Role-Based Access Control</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-user me-1 text-primary"></i> Username</label>
+                            <input type="text" name="username" id="id_username" class="form-control form-control-lg" required autofocus>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold"><i class="fa-solid fa-lock me-1 text-primary"></i> Password</label>
+                            <input type="password" name="password" id="id_password" class="form-control form-control-lg" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" style="background-color: #1e3a8a;">
+                            <i class="fa-solid fa-right-to-bracket me-2"></i> Log In
+                        </button>
+                    </form>
+
+                    <!-- Quick Autofill for Evaluation -->
+                    <div class="mt-4 pt-3 border-top">
+                        <p class="text-muted small fw-semibold text-center mb-2">
+                            <i class="fa-solid fa-bolt text-warning me-1"></i> Quick Demo Fill for Evaluation:
+                        </p>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-danger btn-sm flex-fill" onclick="fillCreds('admin', 'admin123')">
+                                Admin
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm text-dark flex-fill" onclick="fillCreds('mechanic_ravi', 'pass123')">
+                                Mechanic
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm flex-fill" onclick="fillCreds('fleet_kiran', 'pass123')">
+                                Customer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-muted small mb-0">
+                            Don't have an account? <a href="{% url 'register' %}" class="fw-bold text-decoration-none text-primary">Register here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillCreds(u, p) {
+    document.getElementById('id_username').value = u;
+    document.getElementById('id_password').value = p;
+}
+</script>
+{% endblock %}

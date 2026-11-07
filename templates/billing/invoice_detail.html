@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Invoice {{ invoice.invoice_number }} - Workshop Tax Invoice{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Invoice Control Bar -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-file-invoice text-primary me-2"></i> Tax Invoice: {{ invoice.invoice_number }}</h2>
+            <p class="text-muted mb-0">Generated on {{ invoice.created_at|date:"F d, Y" }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-print me-1"></i> Print / PDF
+            </button>
+            <a href="{% url 'invoice_list' %}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-list me-1"></i> Invoices List
+            </a>
+            {% if user.is_customer_role and invoice.status == 'UNPAID' %}
+                <a href="{% url 'process_payment' invoice.pk %}" class="btn btn-success fw-bold">
+                    <i class="fa-solid fa-credit-card me-1"></i> Pay Now (₹{{ invoice.total_amount|intcomma }})
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Official Invoice Document Box -->
+    <div class="invoice-box shadow-sm mb-4">
+        <!-- Workshop & Customer Header -->
+        <div class="row align-items-center mb-4 pb-4 border-bottom">
+            <div class="col-sm-7">
+                <h3 class="fw-bold text-primary mb-1">
+                    <i class="fa-solid fa-gears text-warning me-2"></i> HEAVY VEHICLE SERVICE HUB
+                </h3>
+                <p class="text-secondary small mb-0">
+                    Workshop Bay 1-8, State Highway 17, Industrial Logistics Corridor<br>
+                    GSTIN: <strong>29AABCH9821K1Z5</strong> | Helpline: +91 98765 43210
+                </p>
+            </div>
+            <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+                <h4 class="fw-bold text-dark mb-1">TAX INVOICE</h4>
+                <div class="fw-bold text-primary fs-5 mb-1">{{ invoice.invoice_number }}</div>
+                <div class="text-muted small">Job Card Ref: <strong>{{ invoice.job_card.job_card_number }}</strong></div>
+                <div>
+                    {% if invoice.status == 'PAID' %}
+                        <span class="badge bg-success fs-6 mt-1"><i class="fa-solid fa-circle-check me-1"></i> PAID IN FULL</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark fs-6 mt-1"><i class="fa-solid fa-clock me-1"></i> PAYMENT DUE</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Billed To & Vehicle Info -->
+        <div class="row mb-4">
+            <div class="col-sm-6">
+                <h6 class="text-muted text-uppercase fw-bold small mb-2">Billed To (Fleet Owner / Customer):</h6>
+                <h5 class="fw-bold text-dark mb-1">{{ invoice.customer.get_full_name|default:invoice.customer.username }}</h5>
+                <div class="text-secondary small mb-1">{{ invoice.customer.company_name|default:"Individual Owner" }}</div>
+                <div class="text-secondary small mb-1"><i class="fa-solid fa-phone me-1"></i> {{ invoice.customer.phone_number }}</div>
+                <div class="text-secondary small">{{ invoice.customer.address|default:"Commercial Operating Address" }}</div>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                <h6 class="text-muted text-uppercase fw-bold small mb-2">Heavy Vehicle Serviced:</h6>
+                <h5 class="fw-bold text-primary mb-1">{{ invoice.job_card.service_request.vehicle.registration_number }}</h5>
+                <div class="text-secondary small mb-1">{{ invoice.job_card.service_request.vehicle.make }} {{ invoice.job_card.service_request.vehicle.model_name }} ({{ invoice.job_card.service_request.vehicle.get_vehicle_type_display }})</div>
+                <div class="text-secondary small mb-1">Chassis: {{ invoice.job_card.service_request.vehicle.chassis_number|default:"N/A" }}</div>
+                <div class="text-secondary small">Odometer: {{ invoice.job_card.meter_reading_in|intcomma }} km</div>
+            </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Description of Service / Part</th>
+                        <th>Type</th>
+                        <th class="text-center">Qty / Hrs</th>
+                        <th class="text-end">Rate (₹)</th>
+                        <th class="text-end">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Labor Line Item -->
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <strong>Workshop Labor & Technical Overhaul</strong><br>
+                            <small class="text-muted">Lead Mechanic: {{ invoice.job_card.assigned_mechanic.get_full_name }} ({{ invoice.job_card.service_request.get_service_type_display }})</small>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">Labor</span></td>
+                        <td class="text-center">{{ invoice.labor_hours }} hrs</td>
+                        <td class="text-end">₹{{ invoice.labor_rate_per_hour|intcomma }}</td>
+                        <td class="text-end fw-semibold">₹{{ invoice.labor_charges|intcomma }}</td>
+                    </tr>
+
+                    <!-- Parts Line Items -->
+                    {% for item in invoice.job_card.parts_used.all %}
+                        <tr>
+                            <td>{{ forloop.counter|add:1 }}</td>
+                            <td>
+                                <strong>{{ item.part.name }}</strong> (SKU: {{ item.part.part_number }})<br>
+                                <small class="text-muted">{{ item.part.get_category_display }}</small>
+                            </td>
+                            <td><span class="badge bg-light text-success border">Parts</span></td>
+                            <td class="text-center">{{ item.quantity }} {{ item.part.unit_of_measure }}</td>
+                            <td class="text-end">₹{{ item.unit_price|intcomma }}</td>
+                            <td class="text-end fw-semibold">₹{{ item.subtotal|intcomma }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted small py-2">No replacement parts required for this service.</td>
+                        </tr>
+                    {% endfor %}
+
+                    <!-- Roadside Assistance if applicable -->
+                    {% if invoice.roadside_assistance_fee > 0 %}
+                        <tr>
+                            <td>+</td>
+                            <td>
+                                <strong>Mobile Roadside Emergency Breakdown Dispatch</strong><br>
+                                <small class="text-muted">Location: {{ invoice.job_card.service_request.breakdown_location }}</small>
+                            </td>
+                            <td><span class="badge bg-light text-danger border">Assistance</span></td>
+                            <td class="text-center">1 Trip</td>
+                            <td class="text-end">₹{{ invoice.roadside_assistance_fee|intcomma }}</td>
+                            <td class="text-end fw-semibold">₹{{ invoice.roadside_assistance_fee|intcomma }}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Financial Totals Section -->
+        <div class="row justify-content-end mb-4">
+            <div class="col-md-5">
+                <table class="table table-sm table-borderless">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Labor Charges Subtotal:</td>
+                            <td class="text-end fw-semibold">₹{{ invoice.labor_charges|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Spare Parts Subtotal:</td>
+                            <td class="text-end fw-semibold">₹{{ invoice.parts_charges|intcomma }}</td>
+                        </tr>
+                        {% if invoice.roadside_assistance_fee > 0 %}
+                            <tr>
+                                <td class="text-muted">Roadside Breakdown Fee:</td>
+                                <td class="text-end fw-semibold">₹{{ invoice.roadside_assistance_fee|intcomma }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if invoice.discount_amount > 0 %}
+                            <tr>
+                                <td class="text-success">Fleet Discount:</td>
+                                <td class="text-end text-success fw-semibold">- ₹{{ invoice.discount_amount|intcomma }}</td>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <td class="text-muted">Applicable GST ({{ invoice.tax_rate }}%):</td>
+                            <td class="text-end fw-semibold">₹{{ invoice.tax_amount|intcomma }}</td>
+                        </tr>
+                        <tr class="border-top border-dark fs-5">
+                            <td class="fw-bold text-dark pt-2">Total Amount Payable:</td>
+                            <td class="text-end fw-bold text-primary pt-2">₹{{ invoice.total_amount|intcomma }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payment Transactions History if Paid -->
+        {% if payments %}
+            <div class="p-3 bg-light rounded border mt-3">
+                <h6 class="fw-bold mb-2 text-dark"><i class="fa-solid fa-receipt text-success me-1"></i> Recorded Payment Transactions:</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Transaction Ref</th>
+                                <th>Method</th>
+                                <th>Amount Paid</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in payments %}
+                                <tr>
+                                    <td class="fw-bold text-success">{{ p.transaction_id }}</td>
+                                    <td>{{ p.get_payment_method_display }}</td>
+                                    <td class="fw-bold">₹{{ p.amount_paid|intcomma }}</td>
+                                    <td>{{ p.payment_date|date:"M d, Y H:i" }}</td>
+                                    <td><span class="badge bg-success">{{ p.get_status_display }}</span></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if invoice.notes %}
+            <div class="mt-4 pt-3 border-top small text-muted">
+                <strong>Warranty & Service Terms:</strong> {{ invoice.notes }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

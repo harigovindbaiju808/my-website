@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Admin Dashboard - Heavy Vehicle Workshop Operations{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-gauge-high text-primary me-2"></i> Workshop Administrator Portal</h2>
+            <p class="text-muted mb-0">Master control for vehicle intake, mechanic job dispatch, spare parts inventory & billing.</p>
+        </div>
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+            <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-boxes-stacked me-1"></i> Inventory
+            </a>
+            <a href="{% url 'reports_dashboard' %}" class="btn btn-primary">
+                <i class="fa-solid fa-chart-line me-1"></i> Financial Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Metric Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Pending Requests</span>
+                        <h3 class="fw-bold text-danger mb-0 mt-1">{{ pending_requests_count }}</h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-danger bg-opacity-10 text-danger">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Active Job Cards</span>
+                        <h3 class="fw-bold text-primary mb-0 mt-1">{{ active_job_cards_count }}</h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Low Stock Alert</span>
+                        <h3 class="fw-bold text-warning mb-0 mt-1">{{ low_stock_parts_count }}</h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Total Settled Revenue</span>
+                        <h3 class="fw-bold text-success mb-0 mt-1">₹{{ total_revenue|intcomma }}</h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Pending Service Requests Requiring Mechanic Assignment -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100 rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-inbox text-danger me-2"></i> Pending Service Requests (Action Needed)
+                    </h5>
+                    <a href="{% url 'service_request_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Req ID</th>
+                                    <th>Vehicle</th>
+                                    <th>Service Type</th>
+                                    <th>Priority</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in recent_requests %}
+                                    <tr>
+                                        <td class="fw-bold text-primary">{{ r.request_number }}</td>
+                                        <td>
+                                            <div class="fw-semibold">{{ r.vehicle.registration_number }}</div>
+                                            <small class="text-muted">{{ r.vehicle.make }}</small>
+                                        </td>
+                                        <td><span class="badge bg-light text-dark border">{{ r.get_service_type_display|truncatechars:25 }}</span></td>
+                                        <td>
+                                            {% if r.priority == 'CRITICAL' %}
+                                                <span class="badge bg-danger">{{ r.get_priority_display }}</span>
+                                            {% elif r.priority == 'HIGH' %}
+                                                <span class="badge bg-warning text-dark">{{ r.get_priority_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-info text-dark">{{ r.get_priority_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'service_request_assign' r.pk %}" class="btn btn-sm btn-primary">
+                                                <i class="fa-solid fa-user-plus me-1"></i> Assign
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            <i class="fa-solid fa-circle-check text-success fa-2x mb-2 d-block"></i>
+                                            All service requests have been reviewed and assigned!
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ongoing Job Cards in Workshop Bays -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100 rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-screwdriver-wrench text-primary me-2"></i> Active Job Cards in Bays
+                    </h5>
+                    <a href="{% url 'jobcard_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Job Card</th>
+                                    <th>Vehicle</th>
+                                    <th>Mechanic</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for card in active_job_cards %}
+                                    <tr>
+                                        <td class="fw-bold text-primary">{{ card.job_card_number }}</td>
+                                        <td>
+                                            <div class="fw-semibold">{{ card.service_request.vehicle.registration_number }}</div>
+                                            <small class="text-muted">{{ card.service_request.vehicle.make }} {{ card.service_request.vehicle.model_name }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">
+                                                <i class="fa-solid fa-user-gear me-1"></i> {{ card.assigned_mechanic.get_full_name|default:card.assigned_mechanic.username }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info text-dark">{{ card.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'jobcard_detail' card.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                            {% if card.status == 'COMPLETED' and not card.invoice %}
+                                                <a href="{% url 'invoice_create' card.pk %}" class="btn btn-sm btn-success">
+                                                    <i class="fa-solid fa-file-invoice"></i> Bill
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            No active job cards currently open.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Spare Parts Warnings -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Low Inventory Stock Alerts
+                    </h5>
+                    <a href="{% url 'inventory_list' %}" class="btn btn-sm btn-outline-warning text-dark">Manage Inventory</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Part #</th>
+                                    <th>Component Name</th>
+                                    <th>Stock</th>
+                                    <th>Reorder Point</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for part in low_stock_parts %}
+                                    <tr>
+                                        <td class="fw-bold">{{ part.part_number }}</td>
+                                        <td>{{ part.name }}</td>
+                                        <td>
+                                            <span class="badge bg-danger fw-bold">{{ part.quantity_in_stock }} {{ part.unit_of_measure }}</span>
+                                        </td>
+                                        <td>{{ part.reorder_threshold }} {{ part.unit_of_measure }}</td>
+                                        <td>
+                                            <a href="{% url 'part_update' part.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fa-solid fa-pen-to-square"></i> Update Stock
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            <i class="fa-solid fa-check text-success me-1"></i> Inventory levels healthy across all heavy parts.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Customer Feedback -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-star text-warning me-2"></i> Recent Customer Reviews & Feedback
+                    </h5>
+                    <a href="{% url 'feedback_list' %}" class="btn btn-sm btn-outline-primary">All Reviews</a>
+                </div>
+                <div class="card-body p-3">
+                    {% for fb in recent_feedbacks %}
+                        <div class="p-3 mb-2 rounded bg-light border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold text-dark">{{ fb.customer.get_full_name|default:fb.customer.username }}</span>
+                                <span class="text-warning">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <small class="text-muted d-block mb-1">
+                                Vehicle: <strong>{{ fb.job_card.service_request.vehicle.registration_number }}</strong> | Mechanic: {{ fb.mechanic.get_full_name }}
+                            </small>
+                            <p class="small text-dark mb-0 fst-italic">"{{ fb.comments|truncatechars:120 }}"</p>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4 text-muted">No feedbacks logged yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

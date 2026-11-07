@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Heavy Vehicle Repair & Service System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-4 rounded-top-4" style="background-color: #1e3a8a !important;">
+                    <div class="mb-2">
+                        <i class="fa-solid fa-id-badge fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="fw-bold mb-0">Create Your Workshop Account</h4>
+                    <small class="text-white-50">Module 1: User Registration with Role Assignment</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Role Selection <span class="text-danger">*</span></label>
+                                {{ form.role }}
+                                <div class="form-text small">Select Administrator, Mechanic, or Fleet Customer.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                                {{ form.username }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+                                {{ form.last_name }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                                {{ form.phone_number }}
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Company / Fleet Organization Name</label>
+                                {{ form.company_name }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mechanic Specialization (if Mechanic)</label>
+                                {{ form.specialization }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Experience in Years (if Mechanic)</label>
+                                {{ form.experience_years }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Operating Address / Hub</label>
+                                {{ form.address }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                                {{ form.password1 }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                                {{ form.password2 }}
+                            </div>
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">
+                                <ul class="mb-0">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold shadow-sm">
+                                <i class="fa-solid fa-user-check me-2"></i> Register Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-muted small mb-0">
+                            Already registered? <a href="{% url 'login' %}" class="fw-bold text-decoration-none text-primary">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Generate Invoice - Job Card {{ card.job_card_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4" style="background-color: #1e3a8a !important;">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-file-invoice-dollar me-2 text-warning"></i> Generate Invoice for Job Card {{ card.job_card_number }}
+                    </h5>
+                    <small class="text-white-50">Module 7: Cost Calculation & GST Invoicing</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Cost Summary Header -->
+                    <div class="p-3 bg-light rounded border mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <span class="text-muted small d-block">Vehicle & Fleet:</span>
+                                <h6 class="fw-bold text-dark mb-0">{{ card.service_request.vehicle.registration_number }} ({{ card.service_request.vehicle.make }})</h6>
+                                <small class="text-muted">{{ card.service_request.customer.get_full_name }}</small>
+                            </div>
+                            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                                <span class="text-muted small d-block">Total Parts Consumed:</span>
+                                <h5 class="fw-bold text-success mb-0">₹{{ parts_cost|intcomma }}</h5>
+                                <small class="text-muted">Auto-computed from {{ card.parts_used.count }} issued parts</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Labor Hours Dedicated <span class="text-danger">*</span></label>
+                                {{ form.labor_hours }}
+                                <div class="form-text small">Logged hours from mechanic work logs.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hourly Labor Rate (₹/hr) <span class="text-danger">*</span></label>
+                                {{ form.labor_rate_per_hour }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Roadside Assistance / Towing Charge (₹)</label>
+                                {{ form.roadside_assistance_fee }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Discount / Fleet Goodwill Waiver (₹)</label>
+                                {{ form.discount_amount }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tax Rate (GST %) <span class="text-danger">*</span></label>
+                                {{ form.tax_rate }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Invoice Terms / Customer Notes</label>
+                                {{ form.notes }}
+                            </div>
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">
+                                <ul class="mb-0">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-4 pt-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-receipt me-2"></i> Compute & Finalize Invoice
+                            </button>
+                            <a href="{% url 'jobcard_detail' card.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

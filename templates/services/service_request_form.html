@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Service - Heavy Vehicle Repair System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4" style="background-color: #1e3a8a !important;">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-calendar-plus me-2 text-warning"></i> Book Heavy Vehicle Service / Report Breakdown
+                    </h5>
+                    <small class="text-white-50">Module 3: Customer Service Request Submission</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Select Registered Heavy Vehicle <span class="text-danger">*</span></label>
+                                {{ form.vehicle }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Service Type / Work Category <span class="text-danger">*</span></label>
+                                {{ form.service_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Urgency / Priority Level <span class="text-danger">*</span></label>
+                                {{ form.priority }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Preferred Service Date <span class="text-danger">*</span></label>
+                                {{ form.preferred_date }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Breakdown / Roadside Location (if immobilized)</label>
+                                {{ form.breakdown_location }}
+                                <div class="form-text small">e.g. NH 44, Mile 182 or Leave blank for workshop drop-off.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Detailed Description of Symptoms or Work Required <span class="text-danger">*</span></label>
+                                {{ form.description }}
+                            </div>
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">
+                                <ul class="mb-0">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-4 pt-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-paper-plane me-2"></i> Submit Service Request
+                            </button>
+                            <a href="{% url 'service_request_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

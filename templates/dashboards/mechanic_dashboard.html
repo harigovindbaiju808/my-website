@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Mechanic Dashboard - Heavy Vehicle Workshop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-screwdriver-wrench text-warning me-2"></i> Mechanic Work Console
+            </h2>
+            <p class="text-muted mb-0">
+                Logged in as: <strong class="text-dark">{{ user.get_full_name|default:user.username }}</strong>
+                {% if user.specialization %} | Specialization: <span class="badge bg-primary">{{ user.specialization }}</span>{% endif %}
+                | Experience: <span class="badge bg-secondary">{{ user.experience_years }} Years</span>
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'inventory_list' %}" class="btn btn-outline-primary">
+                <i class="fa-solid fa-boxes-stacked me-1"></i> Check Spare Parts Catalog
+            </a>
+        </div>
+    </div>
+
+    <!-- Mechanic Metrics -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Assigned Open Jobs</span>
+                        <h3 class="fw-bold text-primary mb-0 mt-1">{{ assigned_cards.count }}</h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Total Labor Hours Logged</span>
+                        <h3 class="fw-bold text-success mb-0 mt-1">{{ total_hours }} hrs</h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card card-stat p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small fw-semibold text-uppercase">Client Rating Avg</span>
+                        <h3 class="fw-bold text-warning mb-0 mt-1">{{ avg_rating }} <i class="fa-solid fa-star fs-6"></i></h3>
+                    </div>
+                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Job Cards -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-id-card-clip text-primary me-2"></i> My Assigned Repair Job Cards
+            </h5>
+            <span class="badge bg-primary">{{ assigned_cards.count }} Active</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Job Card #</th>
+                            <th>Heavy Vehicle</th>
+                            <th>Category / Concern</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in assigned_cards %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ card.job_card_number }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ card.service_request.vehicle.registration_number }}</div>
+                                    <small class="text-muted">{{ card.service_request.vehicle.make }} {{ card.service_request.vehicle.model_name }} ({{ card.service_request.vehicle.get_vehicle_type_display }})</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold small">{{ card.service_request.get_service_type_display }}</div>
+                                    <small class="text-muted">{{ card.service_request.description|truncatechars:45 }}</small>
+                                </td>
+                                <td>
+                                    {% if card.service_request.priority == 'CRITICAL' %}
+                                        <span class="badge bg-danger">{{ card.service_request.get_priority_display }}</span>
+                                    {% elif card.service_request.priority == 'HIGH' %}
+                                        <span class="badge bg-warning text-dark">{{ card.service_request.get_priority_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">{{ card.service_request.get_priority_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark">{{ card.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'jobcard_detail' card.pk %}" class="btn btn-sm btn-primary">
+                                            <i class="fa-solid fa-wrench me-1"></i> Work Console
+                                        </a>
+                                        <a href="{% url 'jobcard_update' card.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fa-solid fa-pen-to-square"></i> Status
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fa-solid fa-circle-check text-success fa-2x mb-2 d-block"></i>
+                                    You have no open repair jobs assigned at the moment.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mechanic Customer Reviews -->
+    {% if feedbacks %}
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-award text-warning me-2"></i> Client Reviews on Completed Work
+                </h5>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    {% for fb in feedbacks %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded border h-100">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong class="text-dark">{{ fb.customer.get_full_name|default:fb.customer.username }}</strong>
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                <small class="text-muted d-block mb-2">Job Card: {{ fb.job_card.job_card_number }} ({{ fb.job_card.service_request.vehicle.registration_number }})</small>
+                                <p class="small text-muted mb-0 fst-italic">"{{ fb.comments }}"</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

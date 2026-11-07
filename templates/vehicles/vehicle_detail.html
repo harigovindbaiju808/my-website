@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Vehicle Details - {{ vehicle.registration_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-truck text-primary me-2"></i> {{ vehicle.registration_number }}</h2>
+            <p class="text-muted mb-0">{{ vehicle.make }} {{ vehicle.model_name }} | {{ vehicle.get_vehicle_type_display }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'vehicle_list' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Fleet
+            </a>
+            <a href="{% url 'service_request_create' %}" class="btn btn-warning fw-bold">
+                <i class="fa-solid fa-calendar-plus me-1"></i> Book Service for this Vehicle
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Vehicle Specs Card -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-primary text-white py-3" style="background-color: #1e3a8a !important;">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-circle-info text-warning me-2"></i> Technical Specifications</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <tbody>
+                            <tr>
+                                <th class="text-muted w-40">Registration Number</th>
+                                <td class="fw-bold text-primary">{{ vehicle.registration_number }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Vehicle Type</th>
+                                <td>{{ vehicle.get_vehicle_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Make / Manufacturer</th>
+                                <td>{{ vehicle.make }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Model Name</th>
+                                <td>{{ vehicle.model_name }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Mfg Year</th>
+                                <td>{{ vehicle.manufacture_year }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Chassis / VIN</th>
+                                <td><code>{{ vehicle.chassis_number|default:"N/A" }}</code></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Engine Serial</th>
+                                <td><code>{{ vehicle.engine_number|default:"N/A" }}</code></td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Fuel System</th>
+                                <td>{{ vehicle.get_fuel_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Gross Vehicle Weight</th>
+                                <td>{{ vehicle.gross_vehicle_weight|default:"Standard Heavy GVW" }}</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Odometer Reading</th>
+                                <td class="fw-bold text-success">{{ vehicle.odometer_reading|intcomma }} km</td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted">Owner / Organization</th>
+                                <td>{{ vehicle.customer.get_full_name|default:vehicle.customer.username }} ({{ vehicle.customer.company_name|default:"Individual" }})</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance & Service History -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Service & Repair History
+                    </h5>
+                    <span class="badge bg-secondary">{{ service_history.count }} Records</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Req ID</th>
+                                    <th>Date</th>
+                                    <th>Service Type</th>
+                                    <th>Status</th>
+                                    <th>Job Card</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in service_history %}
+                                    <tr>
+                                        <td class="fw-bold text-primary">{{ s.request_number }}</td>
+                                        <td>{{ s.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="fw-semibold small">{{ s.get_service_type_display }}</div>
+                                            <small class="text-muted">{{ s.description|truncatechars:40 }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ s.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            {% if s.job_card %}
+                                                <a href="{% url 'jobcard_detail' s.job_card.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fa-solid fa-id-card-clip me-1"></i> {{ s.job_card.job_card_number }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">Pending Allocation</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            No maintenance records found for this heavy vehicle.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

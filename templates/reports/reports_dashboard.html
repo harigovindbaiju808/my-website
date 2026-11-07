@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Operational & Financial Reports - Workshop ERP{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-chart-line text-primary me-2"></i> Workshop Performance & Operational Reports</h2>
+            <p class="text-muted mb-0">Module 8: Real-time telemetry, revenue distribution, technician productivity & spare parts metrics.</p>
+        </div>
+        <div>
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-print me-1"></i> Print / Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <span class="text-muted small fw-semibold text-uppercase">Total Settled Revenue</span>
+                <h3 class="fw-bold text-success mb-0 mt-1">₹{{ total_revenue|intcomma }}</h3>
+                <small class="text-muted">From paid tax invoices</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <span class="text-muted small fw-semibold text-uppercase">Spare Parts Revenue</span>
+                <h3 class="fw-bold text-primary mb-0 mt-1">₹{{ parts_revenue|intcomma }}</h3>
+                <small class="text-muted">Components & fluids</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <span class="text-muted small fw-semibold text-uppercase">Workshop Labor Revenue</span>
+                <h3 class="fw-bold text-info mb-0 mt-1">₹{{ labor_revenue|intcomma }}</h3>
+                <small class="text-muted">Certified technician fees</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-stat p-3">
+                <span class="text-muted small fw-semibold text-uppercase">GST Tax Collected</span>
+                <h3 class="fw-bold text-dark mb-0 mt-1">₹{{ tax_collected|intcomma }}</h3>
+                <small class="text-muted">18% statutory compliance</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Distribution Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-chart-pie text-primary me-2"></i> Revenue Stream Breakdown
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column align-items-center justify-content-center p-4">
+                    <div style="max-width: 320px; width: 100%;">
+                        <canvas id="revenuePieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Card Lifecycle Status Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-chart-column text-success me-2"></i> Job Card Status Distribution
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="jobStatusBarChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mechanic Performance Table -->
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-user-gear text-primary me-2"></i> Technician Productivity & Customer Satisfaction
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light table-heavy">
+                        <tr>
+                            <th>Mechanic Name</th>
+                            <th>Specialization</th>
+                            <th>Experience</th>
+                            <th>Total Assigned Jobs</th>
+                            <th>Client Average Rating</th>
+                            <th>Status Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in mechanics %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ m.get_full_name|default:m.username }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ m.specialization|default:"General Heavy Mechanic" }}</span></td>
+                                <td>{{ m.experience_years }} Years</td>
+                                <td class="fw-bold text-primary">{{ m.assigned_jobs_count }}</td>
+                                <td>
+                                    <span class="text-warning fw-bold">
+                                        {{ m.avg_rating|floatformat:1|default:"5.0" }} <i class="fa-solid fa-star"></i>
+                                    </span>
+                                </td>
+                                <td><span class="badge bg-success">Active & Certified</span></td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No mechanics recorded.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Consumed Parts -->
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-screwdriver text-warning me-2"></i> High-Demand Spare Parts & Consumables
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light table-heavy">
+                        <tr>
+                            <th>Part SKU</th>
+                            <th>Part Name</th>
+                            <th>Total Quantity Consumed</th>
+                            <th>Total Value Billed (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in top_parts %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ p.part__part_number }}</td>
+                                <td class="fw-semibold text-dark">{{ p.part__name }}</td>
+                                <td><span class="badge bg-secondary fs-6">{{ p.total_qty }} units</span></td>
+                                <td class="fw-bold text-success">₹{{ p.total_val|intcomma }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No parts consumption logged yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Revenue Doughnut Chart
+    const revCtx = document.getElementById('revenuePieChart').getContext('2d');
+    new Chart(revCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Spare Parts', 'Labor Services', 'GST Tax (18%)'],
+            datasets: [{
+                data: [
+                    {{ parts_revenue|default:0 }},
+                    {{ labor_revenue|default:0 }},
+                    {{ tax_collected|default:0 }}
+                ],
+                backgroundColor: ['#0284c7', '#059669', '#f59e0b'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // 2. Job Card Status Bar Chart
+    const statusCtx = document.getElementById('jobStatusBarChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for item in job_statuses %}
+                    '{{ item.status }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Number of Job Cards',
+                data: [
+                    {% for item in job_statuses %}
+                        {{ item.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: '#1e3a8a',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

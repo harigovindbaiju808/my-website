@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Assign Mechanic - Service Request {{ req.request_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4" style="background-color: #1e3a8a !important;">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-user-gear me-2 text-warning"></i> Allocate Mechanic & Open Job Card
+                    </h5>
+                    <small class="text-white-50">Module 3 & 4: Admin Job Dispatching Workflow</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Request Summary -->
+                    <div class="p-3 bg-light rounded border mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong class="text-primary">{{ req.request_number }}</strong>
+                            <span class="badge bg-danger">{{ req.get_priority_display }}</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">{{ req.vehicle.registration_number }} - {{ req.vehicle.make }} {{ req.vehicle.model_name }}</h6>
+                        <div class="small text-muted mb-2">Service: {{ req.get_service_type_display }}</div>
+                        <p class="small text-secondary mb-0">"{{ req.description }}"</p>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Select Certified Heavy Vehicle Mechanic <span class="text-danger">*</span></label>
+                            {{ form.assigned_mechanic }}
+                            <div class="form-text small">Mechanic will be notified and this job card will appear on their console.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Estimated Completion Date & Time</label>
+                            {{ form.estimated_completion }}
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">
+                                <ul class="mb-0">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-id-card-clip me-2"></i> Confirm Assignment & Create Job Card
+                            </button>
+                            <a href="{% url 'service_request_detail' req.pk %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Feedback - Job Card {{ card.job_card_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-warning text-dark py-3 rounded-top-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-star me-2"></i> Heavy Vehicle Service Feedback & Ratings
+                    </h5>
+                    <small class="text-muted">Module 8: Customer Satisfaction & Quality Control</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <!-- Service Recap -->
+                    <div class="p-3 bg-light rounded border mb-4">
+                        <h6 class="fw-bold mb-1">{{ card.service_request.vehicle.registration_number }} - {{ card.service_request.vehicle.make }} {{ card.service_request.vehicle.model_name }}</h6>
+                        <div class="small text-muted mb-1">Job Card Ref: <strong>{{ card.job_card_number }}</strong></div>
+                        <div class="small text-muted">Assigned Lead Mechanic: <strong>{{ card.assigned_mechanic.get_full_name }}</strong></div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Overall Workshop Experience Rating <span class="text-danger">*</span></label>
+                                {{ form.rating }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Repair Quality Rating</label>
+                                {{ form.quality_rating }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Turnaround Timeliness Rating</label>
+                                {{ form.timeliness_rating }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Your Review Comments & Vehicle Road Behavior <span class="text-danger">*</span></label>
+                                {{ form.comments }}
+                            </div>
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">
+                                <ul class="mb-0">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-4 pt-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-paper-plane me-2"></i> Submit Feedback
+                            </button>
+                            <a href="{% url 'customer_dashboard' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

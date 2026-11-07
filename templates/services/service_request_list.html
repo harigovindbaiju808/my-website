@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Requests - Heavy Vehicle Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fa-solid fa-clipboard-list text-primary me-2"></i> Service Requests</h2>
+            <p class="text-muted mb-0">Module 3: Repair requests, emergency breakdown dispatches & job allocations.</p>
+        </div>
+        <div>
+            <a href="{% url 'service_request_create' %}" class="btn btn-warning fw-bold">
+                <i class="fa-solid fa-plus me-1"></i> Book New Service
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light table-heavy">
+                        <tr>
+                            <th>Request #</th>
+                            <th>Vehicle</th>
+                            <th>Customer / Company</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Preferred Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in service_requests %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ r.request_number }}</td>
+                                <td>
+                                    <div class="fw-semibold">{{ r.vehicle.registration_number }}</div>
+                                    <small class="text-muted">{{ r.vehicle.make }} {{ r.vehicle.model_name }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ r.customer.get_full_name|default:r.customer.username }}</div>
+                                    <small class="text-muted">{{ r.customer.company_name|default:"Individual" }}</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ r.get_service_type_display|truncatechars:30 }}</span></td>
+                                <td>
+                                    {% if r.priority == 'CRITICAL' %}
+                                        <span class="badge bg-danger">{{ r.get_priority_display }}</span>
+                                    {% elif r.priority == 'HIGH' %}
+                                        <span class="badge bg-warning text-dark">{{ r.get_priority_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">{{ r.get_priority_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if r.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ r.get_status_display }}</span>
+                                    {% elif r.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-primary">{{ r.get_status_display }}</span>
+                                    {% elif r.status == 'ASSIGNED' %}
+                                        <span class="badge bg-info text-dark">{{ r.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">{{ r.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ r.preferred_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'service_request_detail' r.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        {% if user.is_admin_role and r.status == 'PENDING' %}
+                                            <a href="{% url 'service_request_assign' r.pk %}" class="btn btn-sm btn-primary">
+                                                <i class="fa-solid fa-user-plus me-1"></i> Assign
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-calendar-xmark fa-3x mb-3 text-secondary d-block"></i>
+                                    No service requests found.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

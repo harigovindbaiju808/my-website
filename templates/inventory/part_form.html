@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Inventory Management{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4" style="background-color: #1e3a8a !important;">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-boxes-stacked me-2 text-warning"></i> {{ title }}
+                    </h5>
+                    <small class="text-white-50">Module 6: Inventory Component Catalog</small>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Part Number / SKU <span class="text-danger">*</span></label>
+                                {{ form.part_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Component Category <span class="text-danger">*</span></label>
+                                {{ form.category }}
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Spare Part Name <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Selling Price per Unit (₹) <span class="text-danger">*</span></label>
+                                {{ form.unit_price }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Cost Price (₹)</label>
+                                {{ form.cost_price }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Current Quantity in Stock <span class="text-danger">*</span></label>
+                                {{ form.quantity_in_stock }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Reorder Alert Threshold <span class="text-danger">*</span></label>
+                                {{ form.reorder_threshold }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Unit of Measure <span class="text-danger">*</span></label>
+                                {{ form.unit_of_measure }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Warehouse / Bay Rack Location</label>
+                                {{ form.rack_location }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">OEM Supplier / Distributor</label>
+                                {{ form.supplier_name }}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Technical Specifications & Notes</label>
+                                {{ form.description }}
+                            </div>
+                        </div>
+
+                        {% if form.errors %}
+                            <div class="alert alert-danger mt-3">
+                                <ul class="mb-0">
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-4 pt-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-warning fw-bold px-4">
+                                <i class="fa-solid fa-save me-2"></i> Save Part Record
+                            </button>
+                            <a href="{% url 'inventory_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
