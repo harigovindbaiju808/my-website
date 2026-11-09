@@ -1,0 +1,7 @@
+zuike comments
+
+The project looks good! Just remove the Admin option from the registration dropdown. 
+Admin accounts can be created using the createsuperuser command. 
+Everything else looks good!
+
+before pushing changes to git run "git pull" command.
